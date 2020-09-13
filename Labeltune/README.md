@@ -1,4 +1,4 @@
-# Probabilistic Iterative Correction (PICO)
+# Label fix using Probability inferrences
 - - - - - - - - - - - - - -
 
 ## reference
@@ -52,10 +52,8 @@ new_label = corrector.new_label()
 * augmentation(func) : (default : None) 데이터 전처리 함수 ex) process_image = lambda x : np.flip(x, -1)
 * lr_scheduler(func) : (default : None) 현재 epoch을 받아 learning rate을 return 하는 함수 ex) lrscheduler = lambda e : 1e-3 if e >10 else 1-e4
 * careful_update(float) : (default : None) .0 ~ 1. 각 category별 최대 확률값이 지정된 값을 넘지 않으면 업데이트 하지 않음
-* data_sampler(class) : (default : None) under/over sampling class, imblearn>=0.6.1 support, "fit_resample" method를 가진 RandomUnderSampler, Pipeline, ... 등 만 지원합니다.
+* data_sampler(class) : (default : None) under/over sampling class, imblearn>=0.6.1 support, "fit_resample" method를 가진 RandomUnderSampler, Pipeline.
 
-
-checker의 개수만큼의 모형을 iteration만큼 반복학습하기 때문에 전체 시간은 **[epoch당 시간 x epoch x n_checker x niter]** 이상 소요됩니다. 시간을 고려하여 적절한 파라미터를 선택하십시오.
 
 ## Guide
 ### 1. Mnist 예제
@@ -198,14 +196,14 @@ corrector.fit(model, (x_data, y_data), epoch=10, batch_size=512, monitor='accura
              , use_best=True, mode='max',careful_update=0.8
              , augmentation=process_image)
 ```
-![출력예시](./image/output_example.PNG)
+
 
 ```python
 new_label = corrector.new_label()
 confm0 = confusion_matrix(y_true ,np.argmax(y_data, axis =1))
 confm1 = confusion_matrix(y_true ,np.argmax(new_label, axis =1))
 ```
-![결과예시](./image/result.PNG)
+
 
 
 ### 2. Generater 사용 예제
@@ -281,7 +279,3 @@ corrector.fit(model, data, epoch=10, batch_size=256, monitor='f1-score',
                      )
 ```
 
-[TODO] 
-- [ ] pandas DataFrame support
-- [x] generator support
-- [x] install 방법
