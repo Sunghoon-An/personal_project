@@ -281,7 +281,6 @@ corrector.fit(model, data, epoch=10, batch_size=256, monitor='f1-score',
                      )
 ```
 
-
 [TODO] 
 - [ ] pandas DataFrame support
 - [x] generator support
