@@ -6,7 +6,7 @@
      * https://tv.naver.com/v/11212650/list/534045
 
 ## install
-wheel 파일을 이용한 설치
+wheel 파일을 이용한 설치 예시
 ```sh
 pip install gruls-0.1.0-py3-none-any.whl
 ```
@@ -16,7 +16,7 @@ pip install gruls-0.1.0-py3-none-any.whl
 
 ```python
 # import
-from labcor import IterativeCorrector
+from grulc import IterativeCorrector
 
 corrector = IterativeCorrector(n_cheaker=2, test_prob=0.15, verbose=2
                         , niter=4, logfile='corrector.log', save_probs='probs'
@@ -25,12 +25,12 @@ corrector = IterativeCorrector(n_cheaker=2, test_prob=0.15, verbose=2
 * n_cheaker(int) : cheaker의 개수 
 * test_prob(float) : test 데이터의 비율 (0 ~ 0.5)
 * niter(int) : 반복횟수 (epoch 아님)
-* verbose(int) : 출력 옵션 0:출력없음, 1:model당 loss 출력, 2:각 모델의 학습과정
+* verbose(int) : 출력 옵션 0:출력없음, 1:model당 loss 출력, 2:각 모델의 학습과정까지 출력
 * logfile(str) : (default : None) 로그파일명, None 일경우 로그를 남기지 않음
 * epoch_reduction(float) : (default : 1) 첫번째 iteration 이후 epoch 감소량 
         1 iteration epoch : 지정된 epoch 수
         1 iteration 이후 epoch : 지정된 epoch 수 / epoch_reduction
-* save_probs(str) : (default : None) 확률값을 numpy array 형태로 저장할 디렉토리
+* save_probs(str) : (default : None) 확률값을 numpy array 형태로 저장할 디렉토리 None 일경우 저장하지 않음
 * min_epoch(int) : (default : 0) : 최소 epoch
 
 ```python
@@ -44,16 +44,18 @@ corrector.fit(model, (x, y), epoch=100, batch_size=128, monitor='accuracy'
 new_label = corrector.new_label()
 ```
 * model(class) : (tensorflow 2.0.0 | tensorflow keras Model) 학습모형
-* data(array or list) : (x_data, y_data) numpy array y_data의 경우 최소 2개 이상의 category
+* data(array or list) : (x_data, y_data) numpy array y_data의 경우 최소 2개 이상의 category를 필요로 함
 * epoch(int) : (default : 3) 각 모델당 학습 에폭
 * batch_size(int) : (default : 64) 학습 베치사이즈
-* monitor(str) : (default : 'loss') 모니터링 지표
+* monitor(str) : (default : 'loss') 모니터링할 지표명
 * use_best(bool) : (default : True) 각 iteration내 model당 가장 좋은 성능의 가중치 사용
 * augmentation(func) : (default : None) 데이터 전처리 함수 ex) process_image = lambda x : np.flip(x, -1)
 * lr_scheduler(func) : (default : None) 현재 epoch을 받아 learning rate을 return 하는 함수 ex) lrscheduler = lambda e : 1e-3 if e >10 else 1-e4
-* careful_update(float) : (default : None) .0 ~ 1. 각 category별 최대 확률값이 지정된 값을 넘지 않으면 non-update
-* data_sampler(class) : (default : None) sampling class, imblearn>=0.6.1 support, "fit_resample" method를 가진 RandomUnderSampler, Pipeline.
+* careful_update(float) : (default : None) .0 ~ 1. 각 category별 최대 확률값이 지정된 값을 넘지 않으면 업데이트 하지 않음
+* data_sampler(class) : (default : None) under/over sampling class, imblearn>=0.6.1 support, "fit_resample" method를 가진 RandomUnderSampler, Pipeline, ... 등 만 지원합니다.
 
+
+checker의 개수만큼의 모형을 iteration만큼 반복학습하기 때문에 전체 시간은 **[epoch당 시간 x epoch x n_checker x niter]** 이상 소요됩니다. 시간을 고려하여 적절한 파라미터를 선택하십시오.
 
 ## Guide
 ### 1. Mnist 예제
@@ -70,7 +72,7 @@ from tensorflow.keras.layers import BatchNormalization, AveragePooling2D, Conv2D
 from tensorflow.keras import Model
 from tensorflow.keras.losses import categorical_crossentropy
 from tensorflow.keras.regularizers import l2
-from labcor import IterativeCorrector
+from grulc import IterativeCorrector
 ```
 
 ```python
@@ -196,11 +198,14 @@ corrector.fit(model, (x_data, y_data), epoch=10, batch_size=512, monitor='accura
              , use_best=True, mode='max',careful_update=0.8
              , augmentation=process_image)
 ```
+![출력예시](./image/output_example.PNG)
+
 ```python
 new_label = corrector.new_label()
 confm0 = confusion_matrix(y_true ,np.argmax(y_data, axis =1))
 confm1 = confusion_matrix(y_true ,np.argmax(new_label, axis =1))
 ```
+![결과예시](./image/result.PNG)
 
 
 ### 2. Generater 사용 예제
@@ -212,7 +217,7 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Input, Activation, BatchNormalization, multiply
 from sklearn.preprocessing import MinMaxScaler ,StandardScaler
-from labcor.utils.binary_dump import to_hdf5
+from grulc.utils.binary_dump import to_hdf5
 ```
 
 ```python
@@ -275,3 +280,9 @@ corrector.fit(model, data, epoch=10, batch_size=256, monitor='f1-score',
                       lr_scheduler=None, careful_update=0.9, data_sampler=None
                      )
 ```
+
+
+[TODO] 
+- [ ] pandas DataFrame support
+- [x] generator support
+- [x] install 방법
